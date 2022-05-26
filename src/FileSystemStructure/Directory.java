@@ -1,21 +1,20 @@
 package FileSystemStructure;
 
 import AllocationMethods.FileAllocation;
-import com.sun.deploy.util.StringUtils;
+import SystemControl.DiskDataControl;
 
-import java.io.FileFilter;
-import java.security.DomainLoadStoreParameter;
-import java.sql.SQLOutput;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Directory {
     private String directoryPath;
     private String directoryName;
-    private ArrayList<File> files;
+    private ArrayList<VirtualFile> files;
     private ArrayList<Directory> subDirectories;
     private boolean deleted = false;
     private FileAllocation allocationType;
+
 
     public Directory(String directoryPath, String directoryName, FileAllocation allocationType) {
         this.directoryPath = directoryPath;
@@ -25,7 +24,7 @@ public class Directory {
         subDirectories=new ArrayList<>();
     }
 
-    public Directory(String directoryPath, String directoryName, ArrayList<File> files, ArrayList<Directory> subDirectories, boolean deleted, FileAllocation allocationType) {
+    public Directory(String directoryPath, String directoryName, ArrayList<VirtualFile> files, ArrayList<Directory> subDirectories, boolean deleted, FileAllocation allocationType) {
         this.directoryPath = directoryPath;
         this.directoryName = directoryName;
         this.files = files;
@@ -51,11 +50,11 @@ public class Directory {
         this.directoryName = directoryName;
     }
 
-    public ArrayList<File> getFiles() {
+    public ArrayList<VirtualFile> getFiles() {
         return files;
     }
 
-    public void setFiles(ArrayList<File> files) {
+    public void setFiles(ArrayList<VirtualFile> files) {
         this.files = files;
     }
 
@@ -83,11 +82,15 @@ public class Directory {
         this.allocationType = allocationType;
     }
 
-    public void CreateFolder(String path,Directory rootDir){  // root/folder1
+    public void CreateFolder(String path,Directory rootDir,File f,boolean check) throws Exception {  // root/folder1
         String directoryName="",directoryPath="";
         int temp = 0;
         int index=0;
         if(path.contains("/")) {index=path.lastIndexOf("/");} //   / => 4
+        if(!path.contains("root")) {
+            System.out.println(">Please Enter path correctly!");
+            return;
+        }
         for(int i=index+1;i<path.length();i++){
             directoryName += path.charAt(i);
         }
@@ -95,21 +98,34 @@ public class Directory {
         for(int i=0;i<index;i++){
             directoryPath += path.charAt(i);
         }
-        String  Temp =directoryPath;
+        String Temp =directoryPath;
         Directory Dir=checkPathFolder(Temp,rootDir);
+        if(Dir==null) {
+            System.out.println(">Please Enter path correctly!");
+            return;
+        }
         if(Dir!=null && !Dir.checkFolderExist(directoryName,temp)) {
             Directory folder=new Directory(directoryPath,directoryName,Dir.allocationType);
             Dir.getSubDirectories().add(folder);
-            System.out.println(">Folder Created Successfully");
+            DiskDataControl.FWrite(f,path);
+            if(check) System.out.println(">Folder Created Successfully");
         }
         else{
             System.out.println(">Failed, Folder Already Exist");
         }
     }
 
-    public void CreateFile(String path,Directory rootDir,int sizeFile){
+    public void CreateFile(String path, Directory rootDir, int sizeFile, File f,boolean check) throws Exception {
         String fileName="",filePath="";
         int temp = 0,index=0;
+        if(!path.contains(".")) {
+            System.out.println(">Please Enter the Extension of the file!");
+            return;
+        }
+        if(!path.contains("root")) {
+            System.out.println(">Please Enter path correctly!");
+            return;
+        }
         if(path.contains("/")) { index=path.lastIndexOf("/");} //   / => 4
 
         for(int i=index+1;i<path.length();i++){
@@ -121,12 +137,15 @@ public class Directory {
         }
         String Temp=filePath;
         Directory Dir=checkPathFolder(filePath,rootDir);
-        
-        if(Dir!=null && !Dir.checkFolderExist(fileName,temp)) {
-            File file=new File(fileName,filePath,sizeFile);
-            if(Dir.getAllocationType().allocateFile(file)){
+        if(Dir==null) {
+            System.out.println(">Please Enter path correctly!");
+            return;
+        }
+        if(Dir!=null && !Dir.checkFileExist(fileName,temp)) {
+            VirtualFile file=new VirtualFile(fileName,Temp,sizeFile);
+            if(Dir.getAllocationType().allocateFile(file,f,path)){
                 Dir.getFiles().add(file);
-                System.out.println(">File Created Successfully");
+                if(check) System.out.println(">File Created Successfully");
             }
             else {
                 System.out.println(">Not Found Space Enough");
@@ -137,10 +156,71 @@ public class Directory {
         }
     }
 
-    public void deleteFile(){
+    public void CreateFile(String path, Directory rootDir, int sizeFile, File f,boolean check,ArrayList<Integer> spaces) throws Exception {
+        String fileName="",filePath="";
+        int temp = 0,index=0;
+        if(!path.contains(".")) {
+            System.out.println(">Please Enter the Extension of the file!");
+            return;
+        }
+        if(!path.contains("root")) {
+            System.out.println(">Please Enter path correctly!");
+            return;
+        }
+        if(path.contains("/")) { index=path.lastIndexOf("/");} //   / => 4
 
+        for(int i=index+1;i<path.length();i++){
+            fileName += path.charAt(i);
+        }
+
+        for(int i=0;i<index;i++){
+            filePath += path.charAt(i);
+        }
+        String Temp=filePath;
+        Directory Dir=checkPathFolder(filePath,rootDir);
+        if(Dir==null) {
+            System.out.println(">Please Enter path correctly!");
+            return;
+        }
+        if(Dir!=null && !Dir.checkFileExist(fileName,temp)) {
+            VirtualFile file=new VirtualFile(fileName,Temp,sizeFile);
+            if(Dir.getAllocationType().allocateFile(file,f,path,spaces)){
+                Dir.getFiles().add(file);
+                if(check) System.out.println(">File Created Successfully");
+            }
+            else {
+                System.out.println(">Not Found Space Enough");
+            }
+        }
+        else{
+            System.out.println(">Failed, File Already Exist");
+        }
     }
-    public void deleteFolder (String path,Directory rootDir){
+
+    public void deleteFile(String path,Directory rootDir,File f) throws Exception {
+        String fileName="",filePath="";
+        int temp = 0,index=0;
+
+        if(path.contains("/")) { index=path.lastIndexOf("/");} //   / => 4
+
+        for(int i=index+1;i<path.length();i++){
+            fileName += path.charAt(i);
+        }
+
+        for(int i=0;i<index;i++){
+            filePath += path.charAt(i);
+        }
+        String Temp=filePath;
+        Directory Dir=checkPathFolder(Temp,rootDir);
+        index=Dir.checkPathFileUtility(fileName);
+        if(index!=-1) {
+            Dir.getAllocationType().deAllocateFile(Dir.getFiles().get(index),f,path);
+            Dir.getFiles().remove(index);
+            System.out.println(">File Deleted Successfully");
+        }
+        else System.out.println(">File not Found");
+    }
+    public void deleteFolder (String path,Directory rootDir,File f) throws IOException {
         String folderName="",folderPath="";
         int temp = 0,index=0;
         if(path.contains("/")) { index=path.lastIndexOf("/");} //   / => 4
@@ -155,7 +235,12 @@ public class Directory {
         String Temp=folderPath;
         Directory Dir=checkPathFolder(Temp,rootDir);
         index=Dir.checkPathFolderUtility(folderName);
-        Dir.getSubDirectories().remove(index);
+        if(index !=-1){
+            Dir.getSubDirectories().remove(index);
+            DiskDataControl.removeLine(f,path);
+            System.out.println(">Folder Deleted Successfully");
+        }
+        else System.out.println(">Folder not Found");
     }
 
     public boolean checkFolderExist(String folderName,int index){ //true if exist ...
@@ -171,7 +256,7 @@ public class Directory {
     }
     public boolean checkFileExist(String fileName,int index){ //true if exist ...
         boolean check=false;
-        for(int i=0;i<subDirectories.size();i++){
+        for(int i=0;i<files.size();i++){
             if(fileName.equalsIgnoreCase(files.get(i).getFileName())) {
                 check=true;
                 index =i;
@@ -186,11 +271,11 @@ public class Directory {
         String Temp="";
         String[] FolderParents=pathName.split("/");
         if(pathName.contains("/")) {
-
             //System.out.println(Arrays.toString(FolderParents));
             int index=0,j=1;
             for(int i=1;i< FolderParents.length ;i++){
-                if(d.checkPathFolderUtility(FolderParents[j])!=-1){
+                index=d.checkPathFolderUtility(FolderParents[j]);
+                if(index!=-1){
                     d = d.getSubDirectories().get(index);
                     j++;
                 }
@@ -203,43 +288,28 @@ public class Directory {
         }
         return null;
     }
-    public Directory checkPathFile(String pathName,Directory rootDir){
-        Directory d=rootDir;
-        String Temp="";
-        String[] FolderParents=pathName.split("/");
-        if(pathName.contains("/")) {
-            System.out.println(Arrays.toString(FolderParents));
-            int index=0,j=1;
-            for(int i=1;i< FolderParents.length ;i++){
-                //if(d.checkPathFileUtility(FolderParents[j])!=-1){
-                    d = d.getSubDirectories().get(index);
-                    j++;
-                //}
-                //else return null;
-            }
-            return d;
-        }
-        else if(pathName.equals("root")) {
-            return d;
-        }
-        return null;
-    }
 
     public int checkPathFolderUtility(String folderName){
         int index=-1;
         for(int i=0;i<subDirectories.size();i++){
-            index = i;
-            if(subDirectories.get(i).getDirectoryName().equalsIgnoreCase(folderName)) return index;
+            if(subDirectories.get(i).getDirectoryName().equals(folderName)) {
+                index = i;
+                return index;
+            }
         }
         return index;
     }
-//    public int checkPathFileUtility(String fileName,int index){
-//        for(int i=0;i<files.size();i++){
-//            index = i;
-//            if(subDirectories.get(i).getDirectoryName().equalsIgnoreCase(fileName)) return true;
-//        }
-//        return false;
-//    }
+    public int checkPathFileUtility(String fileName){
+        int index=-1;
+        for(int i=0;i<files.size();i++){
+
+            if(files.get(i).getFileName().equals(fileName)) {
+                index = i;
+                return index;
+            }
+        }
+        return index;
+    }
 
     public void printDirectoryStructure(Directory rootDir,int level){
         int dirsLength=rootDir.subDirectories.size();
@@ -265,8 +335,6 @@ public class Directory {
             }
         }
 
-
-
     }
     public void displayDiskStatus(){
         ArrayList<Integer> freeSpaces=new ArrayList<>();
@@ -278,6 +346,7 @@ public class Directory {
             if(AllBlocks.charAt(i)=='0') freeSpaces.add(i);
             else allocatedSpaces.add(i);
         }
+
         System.out.println(">Empty Blocks in the Disk");
         System.out.println("-------------------------");
         System.out.print("");

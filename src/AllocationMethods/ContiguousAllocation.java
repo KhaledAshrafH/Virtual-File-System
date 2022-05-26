@@ -1,7 +1,10 @@
 package AllocationMethods;
 
-import FileSystemStructure.File;
+import FileSystemStructure.VirtualFile;
+import SystemControl.DiskDataControl;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class ContiguousAllocation implements FileAllocation{
@@ -24,14 +27,13 @@ public class ContiguousAllocation implements FileAllocation{
     }
 
     @Override
-    public boolean allocateFile(File file) {
+    public boolean allocateFile(VirtualFile file, File f,String path) throws Exception {
         int sizeOfFile =file.getFileSize();
         int freeBlocks=getNumOfFreeBlocks();
+        String TempFile="";
         if(sizeOfFile>freeBlocks) return false;
         else{
-            boolean check=false;
             int checkSize=0;
-
             int start=blocksOfFiles.indexOf(0),end=0;
             for(int i=start;i<totalSize;i++){
                 if(blocksOfFiles.get(i)==0){
@@ -56,6 +58,8 @@ public class ContiguousAllocation implements FileAllocation{
                     for(int k=start;k<=end;k++) {
                         blocksOfFiles.set(k,1);
                     }
+                    TempFile+=path+" "+(String.valueOf(file.getStartBlock())+" ")+(String.valueOf(file.getFileSize()));
+                    DiskDataControl.FWrite(f,TempFile);
                     return true;
                 }
             }
@@ -64,11 +68,17 @@ public class ContiguousAllocation implements FileAllocation{
     }
 
     @Override
-    public void deAllocateFile(File file) {
+    public boolean allocateFile(VirtualFile file, File f, String path, ArrayList<Integer> spaces) throws Exception {
+        return false;
+    }
+
+    @Override
+    public void deAllocateFile(VirtualFile file,File f,String path) throws IOException {
         int sizeOfFile=file.getFileSize();
         for(int i=file.getStartBlock();i<sizeOfFile;i++){
             blocksOfFiles.set(i,0);
         }
+        DiskDataControl.removeLine(f,path);
     }
 
     public int getNumOfFreeBlocks(){

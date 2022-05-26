@@ -2,7 +2,7 @@ package FileSystemStructure;
 
 import java.util.ArrayList;
 
-public class File {
+public class VirtualFile {
     private String fileName;
     private String filePath;
     private String type;
@@ -10,15 +10,24 @@ public class File {
     private boolean deleted=false;
     private int fileSize;
     private int startBlock;
+    private int endBlock;
 
-    public File(String name,String path, int size) {
+    public int getEndBlock() {
+        return endBlock;
+    }
+
+    public void setEndBlock(int endBlock) {
+        this.endBlock = endBlock;
+    }
+
+    public VirtualFile(String name, String path, int size) {
         this.fileName = name;
         this.filePath =path;
         this.fileSize = size;
         allocatedBlocks=new ArrayList<>();
     }
 
-    public File(String fileName, String filePath, String type, ArrayList<Integer> allocatedBlocks, boolean deleted, int fileSize) {
+    public VirtualFile(String fileName) {
         this.fileName = fileName;
         this.filePath = filePath;
         this.type = type;

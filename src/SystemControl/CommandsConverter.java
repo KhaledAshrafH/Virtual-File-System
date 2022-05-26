@@ -1,6 +1,5 @@
 package SystemControl;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class CommandsConverter {
@@ -52,10 +51,6 @@ public class CommandsConverter {
         }
         return -1;
     }
-
-//    private void getCommand(){
-//
-//    }
 
     public int getNumOfParts() {
         return numOfParts;
