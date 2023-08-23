@@ -2,18 +2,6 @@
 
 Virtual File System is a Java project that simulates the allocation and de-allocation of files and folders in a virtual file system using different allocation techniques. It provides a command-line interface for users to interact with the virtual file system and perform various operations such as creating files and folders, deleting files and folders, displaying disk status, and more. The project also includes a protection layer for user management and access control.
 
-## Table of Contents
-
-- [Features](#features)
-- [Commands](#commands)
-- [Getting Started](#getting-started)
-- [Usage](#usage)
-- [Saving and Loading](#saving-and-loading)
-- [File Storage](#file-storage)
-- [Extensibility](#extensibility)
-- [Contributing](#contributing)
-- [License](#license)
-
 ## Features
 
 The Virtual File System project offers the following features:
