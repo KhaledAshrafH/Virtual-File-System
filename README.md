@@ -1,4 +1,4 @@
-# Virtual File System
+# Virtual File System With Protection Layer
 
 Virtual File System is a Java project that simulates the allocation and de-allocation of files and folders in a virtual file system using different allocation techniques. It provides a command-line interface for users to interact with the virtual file system and perform various operations such as creating files and folders, deleting files and folders, displaying disk status, and more. The project also includes a protection layer for user management and access control.
 
@@ -87,4 +87,4 @@ Contributions to the Virtual File System project are welcome! If you find any is
 
 ## License
 
-The Virtual File System project is licensed under the MIT License.
+The Virtual File System project is licensed under the [MIT License](LICENSE.md).
