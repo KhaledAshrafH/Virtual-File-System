@@ -87,4 +87,4 @@ Contributions to the Virtual File System project are welcome! If you find any is
 
 ## License
 
-The Virtual File System project is licensed under the (MIT License)[LICENSE.md].
+The Virtual File System project is licensed under the [MIT License](LICENSE.md).
